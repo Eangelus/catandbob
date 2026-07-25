@@ -54,6 +54,11 @@ Anfrage → Cat (Planung, Risikoeinstufung, Governance-Check)
 - Orientierung an ISO 9001 (Qualitätsmanagement), ISO/IEC 27001 (Informationssicherheit)
   und ISO/IEC 12207 (Software-Lebenszyklus)
 
+## Code-Beispiel
+
+→ [DEEP-DIVE.md](DEEP-DIVE.md) — ein konkreter Architektur-Ausschnitt (Tool-Plugin-System)
+mit Code und Begründung, statt nur Fließtext.
+
 ## Live
 
 Das produktive System ist erreichbar unter **[catandbob.de](https://catandbob.de)**.

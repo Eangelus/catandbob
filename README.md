@@ -1,8 +1,8 @@
 # Cat & Bob — Autonome Software-Fabrik
 
-> **Showroom-Repository.** Dies ist eine kuratierte Projektübersicht ohne Quellcode.
-> Das produktive System läuft unter [catandbob.de](https://catandbob.de);
-> der vollständige Code liegt in einem privaten Repository.
+> Kuratierte Projektübersicht ohne Quellcode. Das produktive System läuft unter
+> [catandbob.de](https://catandbob.de); der vollständige Code liegt in einem privaten
+> Repository.
 
 Cat & Bob ist eine deterministische Multi-Agent-Plattform für Software-Engineering-Prozesse:
 von der Anforderung über die Umsetzung bis zum getesteten, deploybaren Feature — mit

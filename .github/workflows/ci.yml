@@ -33,4 +33,4 @@ jobs:
         run: ruff check .
 
       - name: Tests
-        run: pytest -v
+        run: python -m pytest -v

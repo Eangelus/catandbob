@@ -67,7 +67,7 @@ for entry in audit.entries:
 cd demo
 pip install pytest ruff
 ruff check .
-pytest -v
+python -m pytest -v
 ```
 
 17 Tests, Lint + Tests laufen bei jedem Push über GitHub Actions (Badge oben).

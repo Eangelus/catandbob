@@ -59,6 +59,10 @@ Anfrage → Cat (Planung, Risikoeinstufung, Governance-Check)
 → [DEEP-DIVE.md](DEEP-DIVE.md) — ein konkreter Architektur-Ausschnitt (Tool-Plugin-System)
 mit Code und Begründung, statt nur Fließtext.
 
+→ [demo/](demo/) — eine eigenständige, lauffähige Mini-Demo des Governance-Gate-Musters
+(Planner/Gate/Executor + Audit-Log), mit Tests und CI-Pipeline. Kein Auszug aus dem
+produktiven Code.
+
 ## Live
 
 Das produktive System ist erreichbar unter **[catandbob.de](https://catandbob.de)**.

@@ -47,27 +47,69 @@ Anfrage → Cat (Planung, Risikoeinstufung, Governance-Check)
 - **Qualitätssicherung:** automatisierte Test-Suite (Backend + Frontend) als CI-Pflicht-Gate
   vor jedem Deploy
 
-## Ausrichtung
+## Ausrichtung — mit Mechanismus statt nur Begriff
 
-- On-Premises-fähig — keine zwingende Cloud-Abhängigkeit für den Kern
-- DSGVO by Design statt Nachrüstung
-- Orientierung an ISO 9001 (Qualitätsmanagement), ISO/IEC 27001 (Informationssicherheit)
-  und ISO/IEC 12207 (Software-Lebenszyklus) — **nicht** extern zertifiziert oder
-  auditiert; gemeint sind die gelebten Prozesse (siehe unten), nicht ein Siegel.
+Begriffe wie „deterministisch" oder „DSGVO by Design" sind ohne sichtbaren
+Mechanismus reine Behauptung. Deshalb hier je ein konkretes Beispiel dafür,
+*wie* das umgesetzt ist — nicht nur *dass* es umgesetzt ist.
 
-## Was heißt das konkret — und wie lässt sich das prüfen?
+**„Deterministisch" heißt: feste, benannte Regeln statt Modell-Entscheidung.**
+Die Risikoeinstufung ist kein ML-Modell und kein Scoring mit Wahrscheinlichkeiten,
+sondern eine Kette einzeln benannter, einzeln testbarer Regeln. Aus der
+[Mini-Demo](demo/) (`demo/catbob_mini/risk.py`, echter Code, kein Auszug aus der
+Produktivlogik, aber dasselbe Muster):
 
-Starke Begriffe ohne Beleg sind wertlos. Da der produktive Code privat bleibt
-(siehe oben, bewusste Entscheidung gegen IP-Preisgabe), lässt sich hier nicht
-alles zeigen — aber das, was öffentlich nachprüfbar ist:
+```python
+def classify_risk(task: TaskProfile) -> RiskLevel:
+    if task.touches_production_data and not task.reversible:
+        return RiskLevel.R4          # harter Ausschluss, keine Abwaegung
 
-| Begriff | Was er hier konkret bedeutet | Wo nachprüfbar |
-|---|---|---|
-| „Deterministisch" | Die Risikoeinstufung folgt festen, dokumentierten Regeln (kein Sampling, keine Blackbox-Entscheidung) — jede Regel ist einzeln benannt und testbar | [demo/](demo/) — `risk.py`, 8 Tests decken jede Regel einzeln ab |
-| „Governance statt Blackbox" | Planung und Ausführung sind strukturell getrennte Rollen mit einem dazwischenliegenden Freigabe-Gate, nicht nur Konvention | [demo/](demo/) — `Gate.decide()` blockiert `Executor.execute()` strukturell, nicht per Absprache; siehe auch [DEEP-DIVE.md](DEEP-DIVE.md) für das echte Tool-Plugin-Interface |
-| „Audit-Logging" | Jede Entscheidung (auch eine blockierte) erzeugt einen unveränderlichen Log-Eintrag, kein optionales Nice-to-have | [demo/](demo/) — `AuditLog` ist append-only (frozen Dataclass, keine update()-Methode) |
-| „DSGVO by Design" | Datenschutzrelevante Entscheidungen (z. B. ob etwas ausgeführt werden darf) sind im selben Freigabe-Mechanismus verankert wie Sicherheitsentscheidungen, nicht separat nachgerüstet | Live-System: [catandbob.de](https://catandbob.de) — Impressum/Datenschutzerklärung sind Teil des ausgelieferten Produkts, nicht nur Marketingtext |
-| „On-Premises-fähig" | Kern läuft containerisiert (Docker), ohne zwingenden Cloud-Dienst für die Kernfunktion | Docker-Image-basierter Deploy ist die einzige produktive Betriebsform (siehe Live-System) |
+    level = RiskLevel.R0
+    if not task.has_tests:
+        level = RiskLevel(min(level + 1, RiskLevel.R4))
+    if task.touches_billing:
+        level = RiskLevel(min(level + 2, RiskLevel.R4))
+    if task.touches_auth:
+        level = RiskLevel(min(level + 2, RiskLevel.R4))
+    # ... jede Regel einzeln in tests/test_risk.py abgedeckt (8 Tests)
+    return level
+```
+
+Zwei identische Eingaben ergeben immer dasselbe Ergebnis — das ist die gesamte
+Definition von „deterministisch" hier, nicht mehr und nicht weniger.
+
+**„Governance statt Blackbox" heißt: das Gate kann nicht umgangen werden, weil
+die Ausführung es strukturell braucht.** Nicht Konvention („Bob hält sich an
+die Regel"), sondern Code-Struktur: `Executor.execute()` bekommt eine
+`Decision` als Pflichtparameter und verweigert die Arbeit, wenn deren Status
+nicht `AUTO_APPROVED` ist — nachlesbar in [demo/`workflow.py`](demo/catbob_mini/workflow.py).
+Für das echte, produktive Tool-Plugin-Interface siehe [DEEP-DIVE.md](DEEP-DIVE.md).
+
+**„Audit-Logging" heißt: auch eine verweigerte Ausführung erzeugt einen
+Eintrag.** Nicht nur Erfolge werden protokolliert — gerade das Blockieren ist
+der sicherheitsrelevante Fall. Der `AuditLog` in der Demo ist ein `frozen`
+Dataclass ohne `update()`-Methode: ein Eintrag lässt sich anhängen, aber nicht
+nachträglich verändern.
+
+**„DSGVO by Design" heißt konkret:** Einwilligung (Consent) wird als eigenes,
+vom Nutzerkonto getrenntes Ereignis protokolliert (Zeitpunkt, akzeptierte
+Dokumentversion, IP), nicht nur als Ja/Nein-Flag am Konto — dieselbe
+Append-only-Logik wie beim Audit-Log oben, angewendet auf Einwilligungen statt
+auf Ausführungsentscheidungen. Sichtbarer Teil davon: die produktiv
+ausgelieferte Datenschutzerklärung unter [catandbob.de](https://catandbob.de)
+ist Teil des Produkts, nicht nur eine separate Marketing-Seite.
+
+**„ISO-orientiert" heißt hier: Nachvollziehbarkeit als Code-Zwang, nicht als
+Prozess-Dokument.** Der Kern von ISO 9001 ist, dass Entscheidungen begründet
+und nachvollziehbar sind — hier erzwungen dadurch, dass jede `Decision` ein
+Pflichtfeld `reason` trägt (siehe Demo-Code oben) statt in einem separaten,
+irgendwann veraltenden Handbuch zu stehen. **Das ist keine Zertifizierung** —
+es gibt kein externes Audit und kein Siegel dafür. Gemeint ist ausschließlich
+das gelebte Prinzip.
+
+**On-Premises-fähig:** Der Kern läuft containerisiert (Docker); die einzige
+produktive Betriebsform ist ein Docker-Image-Deploy, kein verstecktes
+Cloud-Backend für die Kernfunktion.
 
 Was hier bewusst **nicht** behauptet wird: eine externe Zertifizierung, ein
 unabhängiges Audit oder verifizierte Kunden-KPIs — dafür gibt es aktuell keinen

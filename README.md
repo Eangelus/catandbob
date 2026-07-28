@@ -77,6 +77,8 @@ def classify_risk(task: TaskProfile) -> RiskLevel:
 
 Zwei identische Eingaben ergeben immer dasselbe Ergebnis — das ist die gesamte
 Definition von „deterministisch" hier, nicht mehr und nicht weniger.
+*Grenze: Das zeigt das Muster in Miniaturform — nicht die tatsächliche Anzahl
+oder Komplexität der Regeln in der Produktivlogik, die bleibt privat.*
 
 **„Governance statt Blackbox" heißt: das Gate kann nicht umgangen werden, weil
 die Ausführung es strukturell braucht.** Nicht Konvention („Bob hält sich an
@@ -84,12 +86,17 @@ die Regel"), sondern Code-Struktur: `Executor.execute()` bekommt eine
 `Decision` als Pflichtparameter und verweigert die Arbeit, wenn deren Status
 nicht `AUTO_APPROVED` ist — nachlesbar in [demo/`workflow.py`](demo/catbob_mini/workflow.py).
 Für das echte, produktive Tool-Plugin-Interface siehe [DEEP-DIVE.md](DEEP-DIVE.md).
+*Grenze: Dass das Muster real funktioniert, lässt sich hier nachvollziehen —
+dass die Produktivversion exakt so und nicht anders verdrahtet ist, nicht.*
 
 **„Audit-Logging" heißt: auch eine verweigerte Ausführung erzeugt einen
 Eintrag.** Nicht nur Erfolge werden protokolliert — gerade das Blockieren ist
 der sicherheitsrelevante Fall. Der `AuditLog` in der Demo ist ein `frozen`
 Dataclass ohne `update()`-Methode: ein Eintrag lässt sich anhängen, aber nicht
 nachträglich verändern.
+*Grenze: Ob und wie vollständig produktiv wirklich jede sicherheitsrelevante
+Aktion geloggt wird, ist von außen nicht prüfbar — das Muster ist belegt, der
+Grad der produktiven Abdeckung nicht.*
 
 **„DSGVO by Design" heißt konkret:** Einwilligung (Consent) wird als eigenes,
 vom Nutzerkonto getrenntes Ereignis protokolliert (Zeitpunkt, akzeptierte
@@ -98,6 +105,8 @@ Append-only-Logik wie beim Audit-Log oben, angewendet auf Einwilligungen statt
 auf Ausführungsentscheidungen. Sichtbarer Teil davon: die produktiv
 ausgelieferte Datenschutzerklärung unter [catandbob.de](https://catandbob.de)
 ist Teil des Produkts, nicht nur eine separate Marketing-Seite.
+*Grenze: Das beschreibt einen Mechanismus, keine Rechtsberatung und kein
+Ersatz für eine externe Datenschutzprüfung.*
 
 **„ISO-orientiert" heißt hier: Nachvollziehbarkeit als Code-Zwang, nicht als
 Prozess-Dokument.** Der Kern von ISO 9001 ist, dass Entscheidungen begründet
@@ -115,6 +124,14 @@ Was hier bewusst **nicht** behauptet wird: eine externe Zertifizierung, ein
 unabhängiges Audit oder verifizierte Kunden-KPIs — dafür gibt es aktuell keinen
 öffentlich prüfbaren Nachweis, und unbelegte Zahlen sind hier absichtlich
 weggelassen.
+
+**Grundsätzliche Grenze dieser Seite:** Ohne Einblick in den produktiven Code
+bleibt ein Rest Vertrauensvorschuss unvermeidlich — Demo-Code und Deep-Dive
+verkleinern diesen Vorschuss (echter, lauffähiger, testbarer Beweis für das
+*Muster*), können ihn aber nicht auf null bringen. Wer das nicht ausreicht,
+sollte diese Begriffe als Positionierung lesen, nicht als Ersatz für eine
+eigene technische Prüfung (z. B. im Rahmen eines Pilotprojekts mit Einblick
+in relevante Ausschnitte).
 
 ## Code-Beispiel
 

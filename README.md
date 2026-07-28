@@ -52,7 +52,27 @@ Anfrage → Cat (Planung, Risikoeinstufung, Governance-Check)
 - On-Premises-fähig — keine zwingende Cloud-Abhängigkeit für den Kern
 - DSGVO by Design statt Nachrüstung
 - Orientierung an ISO 9001 (Qualitätsmanagement), ISO/IEC 27001 (Informationssicherheit)
-  und ISO/IEC 12207 (Software-Lebenszyklus)
+  und ISO/IEC 12207 (Software-Lebenszyklus) — **nicht** extern zertifiziert oder
+  auditiert; gemeint sind die gelebten Prozesse (siehe unten), nicht ein Siegel.
+
+## Was heißt das konkret — und wie lässt sich das prüfen?
+
+Starke Begriffe ohne Beleg sind wertlos. Da der produktive Code privat bleibt
+(siehe oben, bewusste Entscheidung gegen IP-Preisgabe), lässt sich hier nicht
+alles zeigen — aber das, was öffentlich nachprüfbar ist:
+
+| Begriff | Was er hier konkret bedeutet | Wo nachprüfbar |
+|---|---|---|
+| „Deterministisch" | Die Risikoeinstufung folgt festen, dokumentierten Regeln (kein Sampling, keine Blackbox-Entscheidung) — jede Regel ist einzeln benannt und testbar | [demo/](demo/) — `risk.py`, 8 Tests decken jede Regel einzeln ab |
+| „Governance statt Blackbox" | Planung und Ausführung sind strukturell getrennte Rollen mit einem dazwischenliegenden Freigabe-Gate, nicht nur Konvention | [demo/](demo/) — `Gate.decide()` blockiert `Executor.execute()` strukturell, nicht per Absprache; siehe auch [DEEP-DIVE.md](DEEP-DIVE.md) für das echte Tool-Plugin-Interface |
+| „Audit-Logging" | Jede Entscheidung (auch eine blockierte) erzeugt einen unveränderlichen Log-Eintrag, kein optionales Nice-to-have | [demo/](demo/) — `AuditLog` ist append-only (frozen Dataclass, keine update()-Methode) |
+| „DSGVO by Design" | Datenschutzrelevante Entscheidungen (z. B. ob etwas ausgeführt werden darf) sind im selben Freigabe-Mechanismus verankert wie Sicherheitsentscheidungen, nicht separat nachgerüstet | Live-System: [catandbob.de](https://catandbob.de) — Impressum/Datenschutzerklärung sind Teil des ausgelieferten Produkts, nicht nur Marketingtext |
+| „On-Premises-fähig" | Kern läuft containerisiert (Docker), ohne zwingenden Cloud-Dienst für die Kernfunktion | Docker-Image-basierter Deploy ist die einzige produktive Betriebsform (siehe Live-System) |
+
+Was hier bewusst **nicht** behauptet wird: eine externe Zertifizierung, ein
+unabhängiges Audit oder verifizierte Kunden-KPIs — dafür gibt es aktuell keinen
+öffentlich prüfbaren Nachweis, und unbelegte Zahlen sind hier absichtlich
+weggelassen.
 
 ## Code-Beispiel
 
